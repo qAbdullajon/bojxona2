@@ -157,44 +157,41 @@ export default function ProductModal() {
     [updateDropdown, dropdowns]
   );
 
-  const fetchChildTypes = useCallback(
-    async () => {
-      if (!dropdowns.type.selected || loadMoreRef.current.childType) return;
+  const fetchChildTypes = useCallback(async () => {
+    if (!dropdowns.type.selected || loadMoreRef.current.childType) return;
 
-      loadMoreRef.current.childType = true;
-      const dropdownElement = dropdownRef.current.childType;
-      const scrollTop = dropdownElement ? dropdownElement.scrollTop : 0;
+    loadMoreRef.current.childType = true;
+    const dropdownElement = dropdownRef.current.childType;
+    const scrollTop = dropdownElement ? dropdownElement.scrollTop : 0;
 
-      updateDropdown("childType", { loading: true });
-      try {
-        const res = await $api.get(
-          `/child/types/get/by/type/${dropdowns.type.selected}`,
-          { params: {} }
-        );
+    updateDropdown("childType", { loading: true });
+    try {
+      const res = await $api.get(
+        `/child/types/get/by/type/${dropdowns.type.selected}`,
+        { params: {} }
+      );
 
-        if (res.status === 200) {
-          updateDropdown("childType", {
-            items: res.data.data,
-            loading: false,
-          });
+      if (res.status === 200) {
+        updateDropdown("childType", {
+          items: res.data.data,
+          loading: false,
+        });
 
-          setTimeout(() => {
-            if (dropdownElement) {
-              dropdownElement.scrollTop = scrollTop;
-            }
-          }, 0);
-        }
-      } catch (error) {
-        notification(
-          error.response?.data?.message || "Child turlarni yuklashda xatolik"
-        );
-      } finally {
-        updateDropdown("childType", { loading: false });
-        loadMoreRef.current.childType = false;
+        setTimeout(() => {
+          if (dropdownElement) {
+            dropdownElement.scrollTop = scrollTop;
+          }
+        }, 0);
       }
-    },
-    [dropdowns.type.selected, updateDropdown]
-  );
+    } catch (error) {
+      notification(
+        error.response?.data?.message || "Child turlarni yuklashda xatolik"
+      );
+    } finally {
+      updateDropdown("childType", { loading: false });
+      loadMoreRef.current.childType = false;
+    }
+  }, [dropdowns.type.selected, updateDropdown]);
 
   useEffect(() => {
     console.log("editData:", editData);
@@ -551,7 +548,12 @@ export default function ProductModal() {
   );
 
   return (
-    <Modal open={open} onClose={handleClose} disableEnforceFocus disableAutoFocus>
+    <Modal
+      open={open}
+      onClose={handleClose}
+      disableEnforceFocus
+      disableAutoFocus
+    >
       <Box sx={style}>
         <div className="flex items-center justify-between pb-8">
           <p className="text-xl uppercase">Mahsulot qo'shish</p>
@@ -565,46 +567,77 @@ export default function ProductModal() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="grid grid-cols-2 gap-4">
-            <TextField
-              name="name"
-              label="Nomi"
-              value={formData.name}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              required
-            />
-            <TextField
-              name="quantity"
-              label="Miqdori"
-              type="number"
-              value={formData.quantity}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              required
-            />
-            <TextField
-              name="price"
-              label="Narxi"
-              type="number"
-              value={formData.price}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              required
-            />
-            <TextField
-              name="expiration_date"
-              label="Yaroqlilik muddati"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={formData.expiration_date}
-              onChange={handleChange}
-              fullWidth
-              size="small"
-              
-            />
+            <div className="mb-4">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Nomi
+              </label>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="quantity"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Miqdori
+              </label>
+              <input
+                id="quantity"
+                name="quantity"
+                type="number"
+                value={formData.quantity}
+                onChange={handleChange}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="price"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Narxi
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                value={formData.price}
+                onChange={handleChange}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="expiration_date"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Yaroqlilik muddati
+              </label>
+              <input
+                id="expiration_date"
+                name="expiration_date"
+                type="date"
+                value={formData.expiration_date}
+                onChange={handleChange}
+                className="w-full h-10 px-3 border border-gray-300 rounded-md focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400"
+              />
+            </div>
+
             <CustomUnitSelect />
             <CustomSelect
               dropdownName="warehouse"

@@ -26,10 +26,11 @@ export default function Products() {
   const [confirm, setConfirm] = useState({
     open: false,
     id: null,
+    name: "",
   });
   const [pagination, setPagination] = useState({
     page: 0,
-    rowsPerPage: 10,
+    rowsPerPage: 100,
     currentPage: 1,
     totalPages: 1,
   });
@@ -114,7 +115,14 @@ export default function Products() {
       <div className="flex items-center gap-2">
         <button
           className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
-          onClick={() => setConfirm((prev) => ({ ...prev, open: true, id: row.id }))}
+          onClick={() =>
+            setConfirm((prev) => ({
+              ...prev,
+              open: true,
+              id: row.id,
+              name: row.name,
+            }))
+          }
         >
           <Trash size={16} />
         </button>
@@ -229,7 +237,13 @@ export default function Products() {
       <ConfirmationModal
         isOpen={confirm.open}
         onClose={() => setConfirm((prev) => ({ ...prev, open: false }))}
-        message={"Rostanham o'chirmoqchimisiz?"}
+        message={
+          <span>
+            Siz{" "}
+            <span className="text-red-500 font-semibold">{confirm.name}</span>{" "} ni
+            o'chirmoqchimisiz?
+          </span>
+        }
         onConfirm={handleDelete}
       />
     </div>

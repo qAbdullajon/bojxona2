@@ -32,14 +32,15 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");
-  const [confirm, setConfirm] = useState({ open: false, id: null });
+  const [confirm, setConfirm] = useState({ open: false, id: null, event_number: null });
 
   useEffect(() => {
     const fetchData = async (page = 1, limit = 100) => {
       setLoading(true);
       try {
         const res = await $api.get(
-          `/events/${searchQuery ? "search" : "all"
+          `/events/${
+            searchQuery ? "search" : "all"
           }?page=${page}&limit=${limit}&search=${searchQuery || ""}`
         );
         console.log(res);
@@ -114,7 +115,7 @@ export default function Events() {
 
   useEffect(() => {
     if (type === "event-delete") {
-      const eventDelete = async () => { };
+      const eventDelete = async () => {};
       eventDelete();
     }
   }, [isOnSubmit]);
@@ -123,13 +124,14 @@ export default function Events() {
     navigate(`/holatlar/${row.id}`);
   };
 
-
   const rows = originalRows.map((row) => ({
     ...row,
     actions: (
       <div className="flex items-center gap-4">
         <button
-          onClick={() => setConfirm((prev) => ({ ...prev, open: true, id: row.id }))}
+          onClick={() =>
+            setConfirm((prev) => ({ ...prev, open: true, id: row.id, event_number: row.event_number }))
+          }
           className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
         >
           <Trash size={16} />
@@ -206,7 +208,13 @@ export default function Events() {
         isOpen={confirm.open}
         onClose={() => setConfirm((prev) => ({ ...prev, open: false }))}
         onConfirm={handleDelete}
-        message={"Siz yukxatini o'chirmoqchimisiz?"}
+        message={
+          <span>
+            Siz{" "}
+            <span className="text-red-500 font-semibold">{confirm.event_number}</span>{" "} id ga tegishli yuk xatini
+            o'chirmoqchimisiz?
+          </span>
+        }
       />
     </>
   );
