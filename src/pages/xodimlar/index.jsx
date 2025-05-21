@@ -48,7 +48,9 @@ export default function UsersList() {
             limit: pagination.rowsPerPage,
           },
         }
-      );  
+      );
+      console.log(res);
+        
 
       setData(res.data.employees || []);
       setPagination((prev) => ({

@@ -85,7 +85,7 @@ export default function YoqQilingan() {
   const rows = data.map((row, index) => ({
     id: index + 1 + pagination.page * pagination.rowsPerPage,
     name: row.name || "Noma’lum",
-    event_number: "#" + `${row.event_product.event_number}` || "Noma’lum",
+    event_number: "#" + `${row?.event_product?.event_number}` || "Noma’lum",
     mib_region:
       row.destroyed_product[row.destroyed_product.length - 1]?.mib_document
         ?.name || "Yo'q",
@@ -127,7 +127,7 @@ export default function YoqQilingan() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <p className="text-xl text-[#249B73] uppercase font-semibold">
-          Yo'q qilinadi
+          mavjud Yo'q qilingan yuk xatlar
         </p>
       </div>
 

@@ -129,7 +129,7 @@ export default function Sotilgan() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <p className="text-xl text-[#249B73] uppercase font-semibold">
-          Mavjud sotuvdagi yuk xatlari ro'yxati
+          Mavjud sotilgan yuk xatlari ro'yxati
         </p>
       </div>
 
