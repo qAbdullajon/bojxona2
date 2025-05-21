@@ -81,47 +81,48 @@ export default function YoqQilingan() {
       total: pagination.total,
     });
   };
+  const rows = data.map((row, index) => {
+    const lastDestroyed =
+      row.destroyed_product?.[row.destroyed_product.length - 1];
 
-  const rows = data.map((row, index) => ({
-    id: index + 1 + pagination.page * pagination.rowsPerPage,
-    name: row.name || "Noma’lum",
-    event_number: "#" + `${row?.event_product?.event_number}` || "Noma’lum",
-    mib_region:
-      row.destroyed_product[row.destroyed_product.length - 1]?.mib_document
-        ?.name || "Yo'q",
-    mib_number:
-      row.destroyed_product[row.destroyed_product.length - 1]?.mib_dalolatnoma,
-    sud_number:
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_dalolatnoma ||
-      "Yo'q",
-    sud_region:
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_document
-        ?.name,
-    sud_date: format(
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_date,
-      "yyyy-MM-dd"
-    ),
-    total_price: row.total_price || "0",
-    status: (
-      <span
-        className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${getStatusStyle(
-          row.statusProduct?.product_status
-        )}`}
-      >
-        {row.statusProduct?.product_status}
-      </span>
-    ),
-    actions: (
-      <div>
-        <button
-          className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
-          onClick={() => navigate(`/holatlar/${row.event_product.id}`)}
+    return {
+      id: index + 1 + pagination.page * pagination.rowsPerPage,
+      name: row.name || "Noma’lum",
+      event_number: row?.event_product?.event_number
+        ? "#" + row.event_product.event_number
+        : "Noma’lum",
+      mib_region: lastDestroyed?.mib_document?.name || "Yo'q",
+      mib_number: lastDestroyed?.mib_dalolatnoma || "Yo'q",
+      sud_number: lastDestroyed?.sud_dalolatnoma || "Yo'q",
+      sud_region: lastDestroyed?.sud_document?.name || "Yo'q",
+      sud_date: lastDestroyed?.sud_date
+        ? format(new Date(lastDestroyed.sud_date), "yyyy-MM-dd")
+        : "Noma'lum",
+      total_price: row.total_price || "0",
+      status: (
+        <span
+          className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${getStatusStyle(
+            row.statusProduct?.product_status || "Noma'lum"
+          )}`}
         >
-          <ArrowRightFromLine size={16} />
-        </button>
-      </div>
-    ),
-  }));
+          {row.statusProduct?.product_status || "Noma'lum"}
+        </span>
+      ),
+      actions: (
+        <div>
+          <button
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
+            onClick={() =>
+              row.event_product?.id &&
+              navigate(`/holatlar/${row.event_product.id}`)
+            }
+          >
+            <ArrowRightFromLine size={16} />
+          </button>
+        </div>
+      ),
+    };
+  });
 
   return (
     <div>

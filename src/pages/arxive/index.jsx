@@ -1,7 +1,7 @@
 import { ArrowRightFromLine, Pencil } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import GlobalTable from "../../components/global-table";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import $api from "../../http/api";
 import { format } from "date-fns";
 import { Box, CircularProgress, Typography } from "@mui/material";
@@ -20,6 +20,8 @@ export default function Arxive() {
     totalPages: 1,
     total: 0,
   });
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get("search");
 
   const columns = [
     { field: "id", headerName: "№" },
@@ -38,7 +40,7 @@ export default function Arxive() {
       try {
         setLoading(true);
         const res = await $api.get(
-          `/products/get/archive?page=${pagination.page + 1}&limit=${pagination.rowsPerPage}`
+          `/products/get/archive?page=${pagination.page + 1}&limit=${pagination.rowsPerPage}&search=${searchQuery}`
         );
         setData(res.data.products);
         setPagination((prev) => ({
@@ -54,7 +56,7 @@ export default function Arxive() {
       }
     };
     getAllArchive();
-  }, [pagination.rowsPerPage, pagination.page]);
+  }, [pagination.rowsPerPage, pagination.page, searchQuery]);
 
   const handlePageChange = (event, newPage) => {
     setPagination((prev) => ({

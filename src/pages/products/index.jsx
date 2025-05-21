@@ -232,7 +232,7 @@ export default function Products() {
             o'chirmoqchimisiz?
           </span>
           ) : (
-            "Siz yana mahsulot qo'shmoqchimisiz?"
+            "Yangi mahsulot qo'shmoqchimisiz?"
           )
         }
         onConfirm={confirm.id ? handleDelete : onOpen}

@@ -63,6 +63,8 @@ export const ProductDetails = ({ product }) => {
     event_product,
     statusProduct,
     sale_product_quantity,
+    destroyed_product,
+    document_product,
   } = product;
 
   const handleEditDesc = async () => {
@@ -89,79 +91,172 @@ export const ProductDetails = ({ product }) => {
         <SectionTitle>Asosiy ma'lumotlar</SectionTitle>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
+          <InfoCard
+            title="Nomi"
+            value={
+              <>
+                {name}
+                {statusProduct && (
+                  <span
+                    className={`ml-2 text-xs font-medium px-2 min-w-[80px] py-0.5 rounded-full ${getStatusStyle(
+                      statusProduct.product_status
+                    )}`}
+                  >
+                    {statusProduct.product_status}
+                  </span>
+                )}
+              </>
+            }
+          />
+          <InfoCard title="Miqdori" value={`${quantity || 0} ${unit || ""}`} />
+          {price != "0.00" && (
             <InfoCard
-              title="Nomi"
+              title={`Har 1 ${unit} narxi`}
+              value={<PriceDisplay value={price} />}
+            />
+          )}
+          <InfoCard
+            title="Amaldagi mahsulotlar"
+            value={`${active_quantity || 0} ${unit || ""}`}
+          />
+          {destroyed_product?.length > 0 ? (
+            <InfoCard
+              title="MIB ning dalolat noma raqami"
+              value={
+                destroyed_product[destroyed_product.length - 1]?.mib_dalolatnoma
+              }
+            />
+          ) : (
+            document_product.length > 0 && (
+              <InfoCard
+                title="MIB ning dalolat noma raqami"
+                value={
+                  document_product[document_product.length - 1]?.mib_dalolatnoma
+                }
+              />
+            )
+          )}
+          {destroyed_product?.length > 0 ? (
+            <InfoCard
+              title="MIB joylashuvi"
+              value={
+                destroyed_product[destroyed_product.length - 1]
+                  ?.mib_destroyed_product?.name
+              }
+            />
+          ) : (
+            document_product.length > 0 && (
+              <InfoCard
+                title="MIB joylashuvi"
+                value={
+                  document_product[document_product.length - 1]?.mib_document
+                    ?.name
+                }
+              />
+            )
+          )}
+          {destroyed_product?.length > 0 ? (
+            <InfoCard
+              title="Sud ni dalolatnoma raqami"
+              value={
+                destroyed_product[destroyed_product.length - 1]?.sud_dalolatnoma
+              }
+            />
+          ) : (
+            document_product.length > 0 && (
+              <InfoCard
+                title="Sud ni dalolatnoma raqami"
+                value={
+                  document_product[document_product.length - 1]?.sud_dalolatnoma
+                }
+              />
+            )
+          )}
+          {destroyed_product?.length > 0 ? (
+            <InfoCard
+              title="Sud sanasi"
+              value={
+                destroyed_product.at(-1)?.sud_date
+                  ? format(
+                      new Date(destroyed_product.at(-1).sud_date),
+                      "yyyy-MM-dd"
+                    )
+                  : "Sana yo'q"
+              }
+            />
+          ) : (
+            <InfoCard
+              title="Sud sanasi"
+              value={
+                document_product.at(-1)?.sud_date
+                  ? format(
+                      new Date(document_product.at(-1).sud_date),
+                      "yyyy-MM-dd"
+                    )
+                  : "Sana yo'q"
+              }
+            />
+          )}
+
+          {destroyed_product?.length > 0 ? (
+            <InfoCard
+              title="Sud ni joylashuvi"
+              value={
+                destroyed_product?.length
+                  ? destroyed_product[destroyed_product.length - 1]
+                      ?.sud_destroyed_product?.name
+                  : "Maʼlumot yoʻq"
+              }
+            />
+          ) : (
+            <InfoCard
+              title="Sud ni joylashuvi"
+              value={
+                document_product?.length
+                  ? document_product[document_product.length - 1]?.sud_document
+                      ?.name
+                  : "Maʼlumot yoʻq"
+              }
+            />
+          )}
+
+          {expiration_date && (
+            <InfoCard
+              title="Yaroqlilik muddati"
               value={
                 <>
-                  {name}
-                  {statusProduct && (
+                  {expiration_date && format(expiration_date, "dd-MM-yyyy")}
+                  {expiration_date && (
                     <span
-                      className={`ml-2 text-xs font-medium px-2 min-w-[80px] py-0.5 rounded-full ${getStatusStyle(
-                        statusProduct.product_status
-                      )}`}
+                      className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
+                        isBefore(new Date(), new Date(expiration_date))
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
                     >
-                      {statusProduct.product_status}
+                      {isBefore(new Date(), new Date(expiration_date))
+                        ? "Yaroqli"
+                        : "Yaroqsiz"}
                     </span>
                   )}
                 </>
               }
+              icon={Calendar}
+              iconColor="text-red-500"
             />
+          )}
+          {price != "0.00" && (
             <InfoCard
-              title="Miqdori"
-              value={`${quantity || 0} ${unit || ""}`}
+              title="Miqdorning umumiy narxi"
+              value={<PriceDisplay value={total_price} />}
             />
-            {price != "0.00" && (
-              <InfoCard
-                title={`Har 1 ${unit} narxi`}
-                value={<PriceDisplay value={price} />}
-              />
-            )}
+          )}
+          {price != "0.00" && (
             <InfoCard
-              title="Amaldagi mahsulotlar"
-              value={`${active_quantity || 0} ${unit || ""}`}
+              title="Amaldagi mahsulotlarning umumiy narxi"
+              value={<PriceDisplay value={active_total_price} />}
             />
-          </div>
-
-          <div className="space-y-4">
-            {expiration_date && (
-              <InfoCard
-                title="Yaroqlilik muddati"
-                value={
-                  <>
-                    {expiration_date && format(expiration_date, "dd-MM-yyyy")}
-                    {expiration_date && (
-                      <span
-                        className={`ml-2 text-xs font-medium px-2 py-0.5 rounded-full ${
-                          isBefore(new Date(), new Date(expiration_date))
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {isBefore(new Date(), new Date(expiration_date))
-                          ? "Yaroqli"
-                          : "Yaroqsiz"}
-                      </span>
-                    )}
-                  </>
-                }
-                icon={Calendar}
-                iconColor="text-red-500"
-              />
-            )}
-            {price != "0.00" && (
-              <InfoCard
-                title="Miqdorning umumiy narxi"
-                value={<PriceDisplay value={total_price} />}
-              />
-            )}
-            {price != "0.00" && (
-              <InfoCard
-                title="Amaldagi mahsulotlarning umumiy narxi"
-                value={<PriceDisplay value={active_total_price} />}
-              />
-            )}
-          </div>
+          )}
         </div>
 
         {/* Location Information Section */}

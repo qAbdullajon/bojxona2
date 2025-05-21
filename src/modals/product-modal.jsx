@@ -61,6 +61,7 @@ export default function ProductModal({ setConfirm }) {
       show: false,
     },
     type: {
+      search: "",
       selected: null,
       items: [],
       loading: false,
@@ -69,9 +70,12 @@ export default function ProductModal({ setConfirm }) {
       show: false,
     },
     childType: {
+      search: "",
       selected: null,
       items: [],
       loading: false,
+      page: 1,
+      hasMore: true,
       show: false,
     },
   });
@@ -105,22 +109,17 @@ export default function ProductModal({ setConfirm }) {
 
       updateDropdown(dropdownName, { loading: true });
       try {
-        const res = await $api.get(endpoint, {
-          params: {
-            ...params,
-            ...(dropdownName === "type" ? { limit: 30 } : {}),
-          },
-        });
+        const res = await $api.get(endpoint, { params });
         if (res.status === 200) {
           const currentPage = dropdowns[dropdownName].page;
           const newItems =
-            res.data[
-              dropdownName === "event"
-                ? "events"
-                : dropdownName === "type"
-                ? "types"
-                : "warehouses"
-            ];
+            dropdownName === "event"
+              ? res.data.events
+              : dropdownName === "type"
+              ? res.data.types
+              : dropdownName === "childType"
+              ? res.data.data
+              : res.data.warehouses;
 
           const updatedItems =
             currentPage === 1
@@ -151,42 +150,6 @@ export default function ProductModal({ setConfirm }) {
     [updateDropdown, dropdowns]
   );
 
-  const fetchChildTypes = useCallback(async () => {
-    if (!dropdowns.type.selected || loadMoreRef.current.childType) return;
-
-    loadMoreRef.current.childType = true;
-    const dropdownElement = dropdownRef.current.childType;
-    const scrollTop = dropdownElement ? dropdownElement.scrollTop : 0;
-
-    updateDropdown("childType", { loading: true });
-    try {
-      const res = await $api.get(
-        `/child/types/get/by/type/${dropdowns.type.selected}`,
-        { params: {} }
-      );
-
-      if (res.status === 200) {
-        updateDropdown("childType", {
-          items: res.data.data,
-          loading: false,
-        });
-
-        setTimeout(() => {
-          if (dropdownElement) {
-            dropdownElement.scrollTop = scrollTop;
-          }
-        }, 0);
-      }
-    } catch (error) {
-      notification(
-        error.response?.data?.message || "Child turlarni yuklashda xatolik"
-      );
-    } finally {
-      updateDropdown("childType", { loading: false });
-      loadMoreRef.current.childType = false;
-    }
-  }, [dropdowns.type.selected, updateDropdown]);
-
   useEffect(() => {
     if (open) {
       setFormData({
@@ -200,16 +163,10 @@ export default function ProductModal({ setConfirm }) {
 
       setDropdowns((prev) => ({
         ...prev,
-        warehouse: {
-          ...prev.warehouse,
-          selected: editData?.warehouseId || null,
-        },
+        warehouse: { ...prev.warehouse, selected: editData?.warehouseId || null },
         event: { ...prev.event, selected: editData?.eventId || null },
         type: { ...prev.type, selected: editData?.typeId || null },
-        childType: {
-          ...prev.childType,
-          selected: editData?.childTypeId || null,
-        },
+        childType: { ...prev.childType, selected: editData?.childTypeId || null },
       }));
     }
   }, [open, editData]);
@@ -244,6 +201,7 @@ export default function ProductModal({ setConfirm }) {
         show: false,
       },
       type: {
+        search: "",
         selected: null,
         items: [],
         loading: false,
@@ -251,16 +209,21 @@ export default function ProductModal({ setConfirm }) {
         hasMore: true,
         show: false,
       },
-      childType: { selected: null, items: [], loading: false, show: false },
+      childType: {
+        search: "",
+        selected: null,
+        items: [],
+        loading: false,
+        page: 1,
+        hasMore: true,
+        show: false,
+      },
     });
   }, [onClose]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => {
-      const newState = { ...prev, [name]: value };
-      return newState;
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = useCallback(
@@ -305,12 +268,9 @@ export default function ProductModal({ setConfirm }) {
               setConfirm((prev) => ({
                 ...prev,
                 open: true,
-                message: "Siz yana mahsulot qo'shmoqchimisiz?",
+                message: "Yangi mahsulot qo'shmoqchimisiz?",
               }));
             }
-            // toggleIsAddModal();
-            // setType("create-product");
-            // setText("Yana mahsulot qo'shmoqchimisiz?");
           }
         }
       } catch (error) {
@@ -319,7 +279,7 @@ export default function ProductModal({ setConfirm }) {
         setSubmitLoading(false);
       }
     },
-    [dropdowns, formData, editData, handleClose]
+    [dropdowns, formData, editData, handleClose, createPandingData, setConfirm]
   );
 
   const CustomSelect = ({
@@ -339,46 +299,41 @@ export default function ProductModal({ setConfirm }) {
       }
     }, [dropdown.show, dropdownName]);
 
-    // Debounced fetchData funksiyasi
     const debouncedFetch = useCallback(
-      debounce((dropdownName, endpoint, params) => {
-        fetchData(dropdownName, endpoint, params);
+      debounce((value, page) => {
+        const endpoint =
+          dropdownName === "event"
+            ? value
+              ? "events/search"
+              : "events/all"
+            : dropdownName === "type"
+            ? value
+              ? "product/types/search"
+              : "product/types/all"
+            : dropdownName === "childType"
+            ? `/child/types/get/by/type/${dropdowns.type.selected}`
+            : "warehouses/all";
+        fetchData(dropdownName, endpoint, {
+          search: value,
+          page,
+          ...(dropdownName === "childType" ? { limit: 10 } : { limit: 30 }),
+        });
       }, 300),
-      [fetchData]
+      [fetchData, dropdownName, dropdowns.type.selected]
     );
 
     const toggleDropdown = useCallback(() => {
       if (disabled) return;
       updateDropdown(dropdownName, { show: !dropdown.show });
 
-      if (!dropdown.show && dropdown.items.length === 0 && !dropdown.loading) {
-        if (dropdownName === "childType" && dropdowns.type.selected) {
-          fetchChildTypes();
-        } else if (dropdownName !== "childType") {
-          fetchData(
-            dropdownName,
-            dropdownName === "event"
-              ? dropdown.search
-                ? "events/search"
-                : "events/all"
-              : dropdownName === "type"
-              ? "product/types/all"
-              : "warehouses/all",
-            { search: dropdown.search, page: dropdown.page }
-          );
-        }
+      if (
+        !dropdown.show &&
+        (dropdown.items.length === 0 || dropdown.search) &&
+        !dropdown.loading
+      ) {
+        debouncedFetch(dropdown.search, 1);
       }
-    }, [
-      dropdownName,
-      dropdown.show,
-      dropdown.items.length,
-      dropdown.loading,
-      dropdown.search,
-      dropdowns.type.selected,
-      dropdown.page,
-      fetchChildTypes,
-      fetchData,
-    ]);
+    }, [dropdown.show, dropdown.items.length, dropdown.search, dropdown.loading, disabled, debouncedFetch]);
 
     const handleSelect = useCallback(
       (id) => {
@@ -387,6 +342,9 @@ export default function ProductModal({ setConfirm }) {
           updateDropdown("childType", {
             selected: null,
             items: [],
+            search: "",
+            page: 1,
+            hasMore: true,
             show: false,
           });
         }
@@ -397,26 +355,8 @@ export default function ProductModal({ setConfirm }) {
     const loadMore = useCallback(() => {
       if (!dropdown.hasMore || dropdown.loading) return;
       updateDropdown(dropdownName, { page: dropdown.page + 1 });
-      if (dropdownName !== "childType") {
-        fetchData(
-          dropdownName,
-          dropdownName === "event"
-            ? dropdown.search
-              ? "events/search"
-              : "events/all"
-            : dropdownName === "type"
-            ? "product/types/all"
-            : "warehouses/all",
-          { search: dropdown.search, page: dropdown.page + 1 }
-        );
-      }
-    }, [
-      dropdownName,
-      dropdown.hasMore,
-      dropdown.loading,
-      dropdown.search,
-      dropdown.page,
-    ]);
+      debouncedFetch(dropdown.search, dropdown.page + 1);
+    }, [dropdown.hasMore, dropdown.loading, dropdown.search, dropdown.page, debouncedFetch]);
 
     const handleSearchChange = useCallback(
       (value) => {
@@ -424,27 +364,14 @@ export default function ProductModal({ setConfirm }) {
           search: value,
           page: 1,
           items: [],
+          hasMore: true,
         });
-        if (dropdownName !== "childType") {
-          debouncedFetch(
-            dropdownName,
-            dropdownName === "event"
-              ? value
-                ? "events/search"
-                : "events/all"
-              : dropdownName === "type"
-              ? "product/types/all"
-              : "warehouses/all",
-            { search: value, page: 1 }
-          );
-        }
+        debouncedFetch(value, 1);
       },
       [dropdownName, debouncedFetch]
     );
 
-    const selectedItem = dropdown.items.find(
-      (item) => item.id === dropdown.selected
-    );
+    const selectedItem = dropdown.items.find((item) => item.id === dropdown.selected);
 
     return (
       <div className="relative mb-4">
@@ -476,18 +403,16 @@ export default function ProductModal({ setConfirm }) {
             onClickAway={() => updateDropdown(dropdownName, { show: false })}
           >
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10 overflow-hidden">
-              {dropdownName !== "type" && (
-                <div className="p-2 border-b border-gray-200">
-                  <input
-                    type="text"
-                    value={dropdown.search}
-                    onChange={(e) => handleSearchChange(e.target.value)}
-                    placeholder={searchPlaceholder}
-                    className="w-full border border-gray-300 rounded-md p-2 focus:border-gray-500 focus:ring-gray-500"
-                    autoFocus
-                  />
-                </div>
-              )}
+              <div className="p-2 border-b border-gray-200">
+                <input
+                  type="text"
+                  value={dropdown.search}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  placeholder={searchPlaceholder}
+                  className="w-full border border-gray-300 rounded-md p-2 focus:border-gray-500 focus:ring-gray-500"
+                  autoFocus
+                />
+              </div>
 
               {dropdown.loading && dropdown.items.length === 0 && (
                 <div className="flex justify-center p-2">
@@ -513,7 +438,7 @@ export default function ProductModal({ setConfirm }) {
                           : item[displayField]}
                       </div>
                     ))}
-                    {dropdownName !== "childType" && dropdown.hasMore && (
+                    {dropdown.hasMore && (
                       <div className="p-2 border-t border-gray-200 text-center">
                         <button
                           onClick={loadMore}
@@ -574,7 +499,7 @@ export default function ProductModal({ setConfirm }) {
       open={open}
       onClose={handleClose}
       BackdropProps={{
-        style: { backgroundColor: "rgba(0, 0, 0, 0.4)" }, // bu esa qorong‘iroq
+        style: { backgroundColor: "rgba(0, 0, 0, 0.4)" },
       }}
       disableEnforceFocus
       disableAutoFocus
@@ -679,6 +604,7 @@ export default function ProductModal({ setConfirm }) {
               dropdownName="type"
               placeholder="Mahsulot turi"
               displayField="product_type"
+              searchPlaceholder="Mahsulot turi qidirish"
             />
             <CustomSelect
               dropdownName="childType"
@@ -687,6 +613,8 @@ export default function ProductModal({ setConfirm }) {
                   ? "Qannday mahsulot"
                   : "Avval turini tanlang"
               }
+              displayField="name"
+              searchPlaceholder="Qannday mahsulot qidirish"
               disabled={!dropdowns.type.selected}
             />
             <div className="col-span-2">
@@ -717,6 +645,7 @@ export default function ProductModal({ setConfirm }) {
             <button
               type="submit"
               className="w-[100px] py-2 bg-[#249B73] rounded-md text-white hover:bg-[#1d7a5a] transition-colors"
+              disabled={submitLoading}
             >
               {submitLoading ? (
                 <div className="animate-spin flex items-center justify-center">

@@ -18,7 +18,6 @@ export default function GlobalTable({
   rowsPerPage,
   total,
   onPageChange,
-  onRowsPerPageChange,
   totalQuantity,
 }) {
   return (
@@ -34,7 +33,8 @@ export default function GlobalTable({
                 sx={{
                   color: "#7783c5",
                   borderColor: "#f5efee",
-                  padding: "10px 0",
+                  border: "1px solid #f5efee",
+                  padding: "5px 8px",
                   width: column?.width,
                 }}
                 key={column.field}
@@ -50,8 +50,8 @@ export default function GlobalTable({
               {columns.map((column) => (
                 <TableCell
                   sx={{
-                    borderColor: "#f5efee",
-                    padding: "10px 0",
+                    border: "1px solid #f5efee",
+                    padding: "5px 8px",
                   }}
                   key={column.field}
                 >

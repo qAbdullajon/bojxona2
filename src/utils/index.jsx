@@ -70,7 +70,7 @@ export const navList = [
   },
   {
     id: 7,
-    name: "Egasiga qaytarilgan",
+    name: "Egasiga qaytarildi",
     icon: RouteOff,
     color: "#3949ab", // moviy-binafsha - qaytish yo‘li
     path: "/egasiga-qaytarilgan",

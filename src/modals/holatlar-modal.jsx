@@ -44,7 +44,6 @@ export default function EventsModal() {
     setText,
     setType,
   } = useEventStore();
-  console.log(editData);
   
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -295,7 +294,6 @@ export default function EventsModal() {
         }
         resetForm();
       } catch (err) {
-        console.error("Yangilashda xatolik:", err);
         notification(
           err.response?.data?.message || "Yangilashda xatolik yuz berdi",
           "error"

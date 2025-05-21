@@ -207,7 +207,6 @@ export default function EventDetail() {
         // setDataCount(res.data.)
         setData(res.data.data.products);
         setTotal(res.data.data.total);
-        
       }
     } catch (error) {
       // Faqat tarmoq yoki serverdagi global xatoliklar uchun
@@ -279,6 +278,8 @@ export default function EventDetail() {
   const originalRows = (data || []).map((item, i) => ({
     ...item,
     index: i + 1,
+    quantity: Number(item.quantity).toFixed(0),
+    total_price: Number(item.total_price).toFixed(0),
     check: (
       <Checkbox
         checked={items.includes(item.id)}
@@ -294,8 +295,8 @@ export default function EventDetail() {
         {item.statusProduct?.product_status}
       </span>
     ),
-    event: item.event_product.event_number,
-    type: item.type_product.product_type,
+    event: item.event_product?.event_number,
+    type: item.type_product?.product_type,
   }));
 
   const nextButton = (row) => {

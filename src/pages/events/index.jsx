@@ -43,8 +43,6 @@ export default function Events() {
             searchQuery ? "search" : "all"
           }?page=${page}&limit=${limit}&search=${searchQuery || ""}`
         );
-        console.log(res);
-
         setData(res.data.events || []);
         setTotal(res.data.total);
       } catch (error) {

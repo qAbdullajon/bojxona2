@@ -91,10 +91,10 @@ export default function UsersList() {
   );
 
   const rows = filteredEmployees.map((employee, index) => {
-    let roleText = "Xodim";
+    let roleText = "Musodara bo‘limi xodimi";
     let roleClass = "bg-green-100 text-green-800";
     if (employee.is_super_admin) {
-      roleText = "Super Admin";
+      roleText = "IT bolim xodimi";
       roleClass = "bg-purple-100 text-purple-800";
     } else if (employee.is_admin) {
       roleText = "Admin";

@@ -125,7 +125,7 @@ export default function EgasigaQaytarilgan() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <p className="text-xl text-[#249B73] uppercase font-semibold">
-          Egasiga qaytarilganlar
+          Egasiga qaytarilgan yuk xatlar ro'yxati
         </p>
       </div>
       {loading ? (
