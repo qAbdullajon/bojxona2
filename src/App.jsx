@@ -22,6 +22,7 @@ import Settings from "./pages/settings";
 import { ToastContainer } from "react-toastify";
 import NotFoundPage from "./pages/not_found/Notfound";
 import GiveFreely from "./pages/give-freely";
+import Sotilgan from "./pages/sotilgan";
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/dokonlar" element={<Shops />} />
           <Route path="/dokonlar/:id" element={<AllProducts />} />
           <Route path="/sotuvda" element={<Sotuvda />} />
+          <Route path="/sotilgan" element={<Sotilgan />} />
           <Route path="/begaraz-berilgan" element={<GiveFreely />} />
           <Route path="/yoq-qilingan" element={<YoqQilingan />} />
           <Route path="/egasiga-qaytarilgan" element={<EgasigaQaytarilgan />} />

@@ -111,7 +111,7 @@ const Statistika = () => {
   const fetchWmsData = useCallback(async () => {
     try {
       setLoading(prev => ({ ...prev, stats: true }));
-      const { data } = await $api.get("/data/stats");
+      const { data } = await $api.get("/data/stats");      
       setStatsData({
         warehouses_count: data.warehouses_cound || 0,
         shopsCount: data.shopsCount || 0,
@@ -141,6 +141,7 @@ const Statistika = () => {
           endDate: dateRange.endDate.format("YYYY-MM-DD"),
         }
       });
+      console.log(response);
 
       if (response.data) {
         // Regionlar bo'yicha statistika

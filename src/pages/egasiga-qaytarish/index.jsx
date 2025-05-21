@@ -24,8 +24,8 @@ export default function EgasigaQaytarilgan() {
   const columns = [
     { field: "id", headerName: "№" },
     { field: "event_number", headerName: "Yuk xati raqami" },
-    { field: "mib_number", headerName: "Mibning dalolatnoma raqami" },
-    { field: "mib_region", headerName: "Mibning hududi" },
+    { field: "mib_number", headerName: "MIB ning dalolatnoma raqami" },
+    { field: "mib_region", headerName: "MIB ning hududi" },
     { field: "sud_number", headerName: "Sudning ijro varaqa no'meri" },
     { field: "sud_region", headerName: "Sudning hududi" },
     { field: "sud_date", headerName: "Sudning sanasi" },
@@ -37,7 +37,7 @@ export default function EgasigaQaytarilgan() {
     try {
       setLoading(true);
       const res = await $api.get(
-        "/statuses/products/by/9f90c564-2ce0-4026-b4e3-613762aa3c43",
+        "/statuses/products/by/ea2d9a99-0e0b-41ba-bf8b-d77e9b24bd4b",
         {
           params: {
             page: pagination.currentPage,

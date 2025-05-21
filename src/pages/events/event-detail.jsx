@@ -417,9 +417,6 @@ export default function EventDetail() {
             />
           </>
         )}
-        <div>
-          <h2>Mahsulotlarning umumiy miqdori</h2>
-        </div>
         <div className="bg-gray-100 p-4 rounded-md">
           <div className="flex items-center justify-between">
             <p className="text-2xl">Yuk xati tarifi</p>

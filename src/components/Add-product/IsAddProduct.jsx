@@ -17,10 +17,16 @@ export default function ConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
-  message
+  message,
 }) {
   return (
-    <Modal open={isOpen} onClose={onClose}>
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      BackdropProps={{
+        style: { backgroundColor: "rgba(0, 0, 0, 0.4)" }, // bu esa qorong‘iroq
+      }}
+    >
       <Box sx={modalStyle}>
         <div className="flex items-center justify-between pb-8">
           <p className="text-xl uppercase">{message}</p>
@@ -31,7 +37,7 @@ export default function ConfirmationModal({
             <X />
           </button>
         </div>
-        
+
         <div className="flex gap-4 justify-end">
           <button
             onClick={onClose}

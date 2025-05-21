@@ -8,10 +8,11 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import { getStatusStyle } from "../../utils/status";
 import { format } from "date-fns";
 
-export default function YoqQilingan() {
+export default function Sotilgan() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({
@@ -29,6 +30,7 @@ export default function YoqQilingan() {
     { field: "sud_number", headerName: "Sudning ijro varaqa no'meri" },
     { field: "sud_region", headerName: "Sudning hududi" },
     { field: "sud_date", headerName: "Sudning sanasi" },
+    { field: "total_price", headerName: "Umumiy narxi" },
     { field: "status", headerName: "Status" },
     { field: "actions", headerName: "Taxrirlash" },
   ];
@@ -37,7 +39,7 @@ export default function YoqQilingan() {
     try {
       setLoading(true);
       const res = await $api.get(
-        "/statuses/products/by/ed207621-3867-4530-8886-0fa434dedc19",
+        "/statuses/products/by/3cb7247b-88b9-4769-bbfa-47341e339b89",
         {
           params: {
             page: pagination.currentPage,
@@ -48,7 +50,7 @@ export default function YoqQilingan() {
       );
       console.log(res);
 
-      setData(res.data.data.data);
+      setData(res.data.data.data || []);
       setPagination((prev) => ({
         ...prev,
         total: res.data.data.pagination.totalItems || 0,
@@ -85,20 +87,20 @@ export default function YoqQilingan() {
   const rows = data.map((row, index) => ({
     id: index + 1 + pagination.page * pagination.rowsPerPage,
     name: row.name || "Noma’lum",
-    event_number: "#" + `${row.event_product.event_number}` || "Noma’lum",
+    event_number: "#" + `${row.event_product?.event_number}` || "Noma’lum",
     mib_region:
-      row.destroyed_product[row.destroyed_product.length - 1]?.mib_document
+      row.document_product[row.document_product.length - 1]?.mib_document
         ?.name || "Yo'q",
     mib_number:
-      row.destroyed_product[row.destroyed_product.length - 1]?.mib_dalolatnoma,
+      row.document_product[row.document_product.length - 1]?.mib_dalolatnoma,
     sud_number:
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_dalolatnoma ||
+      row.document_product[row.document_product.length - 1]?.sud_dalolatnoma ||
       "Yo'q",
     sud_region:
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_document
+      row.document_product[row.document_product.length - 1]?.sud_document
         ?.name,
     sud_date: format(
-      row.destroyed_product[row.destroyed_product.length - 1]?.sud_date,
+      row.document_product[row.document_product.length - 1]?.sud_date,
       "yyyy-MM-dd"
     ),
     total_price: row.total_price || "0",
@@ -127,7 +129,7 @@ export default function YoqQilingan() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <p className="text-xl text-[#249B73] uppercase font-semibold">
-          Yo'q qilinadi
+          Mavjud sotuvdagi yuk xatlari ro'yxati
         </p>
       </div>
 

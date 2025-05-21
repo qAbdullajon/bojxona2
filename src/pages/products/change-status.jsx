@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { X, Upload, FileText, Trash2, Video, CircleCheck } from "lucide-react";
-import { Dialog, DialogContent } from "@mui/material"; // Added DialogContent import
+import { X, Upload, FileText, Trash2, Video } from "lucide-react";
 import $api from "../../http/api";
 import { Statuses } from "../../utils";
 import { notification } from "../../components/notification";
@@ -60,9 +59,9 @@ const FileUploader = ({
                 >
                   <Upload size={16} />
                 </button>
-                <input 
-                  type="file" 
-                  className="hidden" 
+                <input
+                  type="file"
+                  className="hidden"
                   onChange={onChange}
                   accept={accept} // Added accept prop for consistency
                 />
@@ -142,9 +141,9 @@ const VideoUploader = ({
               >
                 <Upload size={16} />
               </button>
-              <input 
-                type="file" 
-                className="hidden" 
+              <input
+                type="file"
+                className="hidden"
                 onChange={onChange}
                 accept="video/mp4,video/quicktime" // Added accept prop for consistency
               />
@@ -234,7 +233,7 @@ const StatusInfo = ({ product, status }) => (
   </div>
 );
 
-export default function ChangeStatus({ product, status, onClose, eventId }) {
+export default function ChangeStatus({ product, status, onClose }) {
   const [fileData, setFileData] = useState(null);
   const [fileName, setFileName] = useState("");
   const [videoFile, setVideoFile] = useState(null);
@@ -244,7 +243,6 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
   const [sudsOptions, setSudsOptions] = useState([]);
   const [selectedMib, setSelectedMib] = useState("");
   const [selectedSud, setSelectedSud] = useState("");
-  const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { items } = useCheckedStore();
   const { setChangeStatusData } = useProductStore();
@@ -318,11 +316,11 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
   const getFormValues = useCallback((form) => {
     const formData = new FormData(form);
     const values = {};
-    
+
     formData.forEach((value, key) => {
       values[key] = { value };
     });
-    
+
     return values;
   }, []);
 
@@ -361,7 +359,10 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
           if (fileData) {
             data.append("document_img", fileData);
           }
-          data.append("date_destroyed", formValues.sud_date?.value || "2025-05-30");
+          data.append(
+            "date_destroyed",
+            formValues.sud_date?.value || "2025-05-30"
+          );
           if (videoFile) {
             data.append("video_destroyed", videoFile);
           }
@@ -387,7 +388,7 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      
+
       // Input validation
       if (!selectedMib || !selectedSud || !fileData) {
         notification(
@@ -408,9 +409,9 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
         if (!productIds || productIds.length === 0) {
           throw new Error("Mahsulot tanlanmagan");
         }
-        
+
         const formValues = getFormValues(e.target);
-        
+
         const endpointMap = {
           "d395b9e9-c9f4-4bf3-a1b5-7dbfa1bb0783": "/sales/products/create",
           "ed207621-3867-4530-8886-0fa434dedc19": "/destroyes/create",
@@ -419,11 +420,11 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
 
         const endpoint = endpointMap[status] || endpointMap.default;
 
+        // Sotuvga chiqarish uchun status
         if (status === "d395b9e9-c9f4-4bf3-a1b5-7dbfa1bb0783") {
-          // For sales status, we prepare the data and pass it to parent
-          const productsData = productIds.map(productId => ({
+          const productsData = productIds.map((productId) => ({
             productId,
-            formData: prepareFormData(productId, formValues)
+            formData: prepareFormData(productId, formValues),
           }));
 
           setChangeStatusData({
@@ -436,29 +437,59 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
               fileData,
             },
             productsData,
-            status
+            status,
           });
-          
-          // notification("Mahsulotlar sotuvga chiqarish uchun tayyorlandi", "success");
-          onClose();
+
+          onClose(); // Modalni yopish
         } else {
-          // For other status types, we send requests to the server
+          // Boshqa statuslar uchun API so‘rovlar
+          let successCount = 0;
+          let failCount = 0;
+
           for (const productId of productIds) {
             const data = prepareFormData(productId, formValues);
-            await $api.post(endpoint, data);
+
+            try {
+              const res = await $api.post(endpoint, data);
+
+              if (res.status >= 200 && res.status < 300) {
+                successCount++;
+              } else {
+                failCount++;
+              }
+            } catch (err) {
+              failCount++;
+              console.error(`Xatolik productId: ${productId}`, err);
+            }
           }
-          
-          setOpen(true);
-          notification(
-            items.length > 0
-              ? "Barcha tanlangan mahsulotlar uchun status muvaffaqiyatli o'zgartirildi"
-              : "Status muvaffaqiyatli o'zgartirildi",
-            "success"
-          );
+
+          if (successCount === productIds.length) {
+            notification(
+              items.length > 0
+                ? "Barcha tanlangan mahsulotlar uchun status muvaffaqiyatli o'zgartirildi"
+                : "Status muvaffaqiyatli o'zgartirildi",
+              "success"
+            );
+            window.location.reload();
+            onClose();
+          } else if (successCount > 0) {
+            notification(
+              `${successCount} ta mahsulot muvaffaqiyatli, ${failCount} ta mahsulotda xatolik yuz berdi`,
+              "warning"
+            );
+          } else {
+            notification(
+              "Barcha mahsulotlarda status o‘zgartirishda xatolik bo‘ldi",
+              "error"
+            );
+          }
         }
       } catch (error) {
         console.error("Submit error:", error);
-        notification(error.response?.data?.message || "Xatolik yuz berdi", "error");
+        notification(
+          error.response?.data?.message || "Xatolik yuz berdi",
+          "error"
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -534,7 +565,6 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
     if (status === "d395b9e9-c9f4-4bf3-a1b5-7dbfa1bb0783") {
       return (
         <div className="space-y-4">
-          
           {commonInputs}
           <FileUploader
             file={fileData}
@@ -605,7 +635,9 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
 
   // Check if product exists to avoid potential issues
   if (!product || !product.id) {
-    return <div className="p-6 text-center">Mahsulot ma'lumotlari topilmadi</div>;
+    return (
+      <div className="p-6 text-center">Mahsulot ma'lumotlari topilmadi</div>
+    );
   }
 
   return (
@@ -634,9 +666,25 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Saqlanmoqda...
               </>
@@ -647,7 +695,7 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
         </div>
       </div>
 
-      <Dialog 
+      {/* <Dialog 
         open={open} 
         onClose={() => setOpen(false)}
         maxWidth="sm"
@@ -669,7 +717,7 @@ export default function ChangeStatus({ product, status, onClose, eventId }) {
             </a>
           </div>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </form>
   );
 }

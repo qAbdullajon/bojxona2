@@ -14,6 +14,7 @@ import {
   Mailbox,
   Package,
   PackageX,
+  Percent,
   RouteOff,
   ShoppingBag,
   ShoppingCart,
@@ -21,7 +22,7 @@ import {
   // SlidersHorizontal,
   User,
   UsersRound,
-  Warehouse
+  Warehouse,
 } from "lucide-react";
 
 export const navList = [
@@ -56,9 +57,30 @@ export const navList = [
   {
     id: 5,
     name: "Sotuvda",
-    icon: BaggageClaim,
+    icon: Percent,
     color: "#43a047", // yashil - faol harakat, sotuv
     path: "/sotuvda",
+  },
+  {
+    id: 13,
+    name: "Sotilgan",
+    icon: BaggageClaim,
+    color: "#20dee2", // yashil - faol harakat, sotuv
+    path: "/sotilgan",
+  },
+  {
+    id: 7,
+    name: "Egasiga qaytarilgan",
+    icon: RouteOff,
+    color: "#3949ab", // moviy-binafsha - qaytish yo‘li
+    path: "/egasiga-qaytarilgan",
+  },
+  {
+    id: 6,
+    name: "Yo'q qilindi",
+    icon: PackageX,
+    color: "#e53935", // qizil - xavf, yo‘q qilishga mos
+    path: "/yoq-qilingan",
   },
   {
     id: 12,
@@ -68,33 +90,13 @@ export const navList = [
     path: "/begaraz-berilgan",
   },
   {
-    id: 6,
-    name: "Yo'q qilinadi",
-    icon: PackageX,
-    color: "#e53935", // qizil - xavf, yo‘q qilishga mos
-    path: "/yoq-qilingan",
-  },
-  {
-    id: 7,
-    name: "Egasiga qaytariladi",
-    icon: RouteOff,
-    color: "#3949ab", // moviy-binafsha - qaytish yo‘li
-    path: "/egasiga-qaytarilgan",
-  },
-  {
-    id: 8,
-    name: "Xodimlar",
-    icon: UsersRound,
-    color: "#fb8c00", // to'q sariq - insonlar, energiya
-    path: "/xodimlar",
-  },
-  {
     id: 9,
     name: "Statistika",
     icon: ChartPie,
     color: "#00897b", // to‘q ko‘k-yashil - data, analiz
     path: "/statistika",
   },
+
   {
     id: 10,
     name: "Arxiv",
@@ -109,8 +111,14 @@ export const navList = [
     color: "#5e35b1", // binafsha - shaxsiy profilga mos
     path: "/profile",
   },
+  {
+    id: 8,
+    name: "Xodimlar",
+    icon: UsersRound,
+    color: "#fb8c00", // to'q sariq - insonlar, energiya
+    path: "/xodimlar",
+  },
 ];
-
 
 export const Statuses = [
   { id: "d395b9e9-c9f4-4bf3-a1b5-7dbfa1bb0783", name: "Sotuvda" },

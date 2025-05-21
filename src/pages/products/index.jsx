@@ -56,18 +56,7 @@ export default function Products() {
       }
     }
   };
-  // useEffect(() => {
-  //   if (isOnSubmit && type === "product-detail") {
-  //     const productDeleted = async () => {
-  //       const res = await $api.delete(`products/delete/${productId}`);
-  //       if (res.status === 200) {
-  //         setData(data.filter((item) => item.id !== productId));
-  //         setIsOnSubmit(false);
-  //       }
-  //     };
-  //     productDeleted();
-  //   }
-  // }, [isOnSubmit]);
+  
   useEffect(() => {
     const getAllProducts = async () => {
       try {
@@ -83,8 +72,6 @@ export default function Products() {
             },
           }
         );
-        console.log(res);
-
         setData(searchQuery ? res.data.products : res.data.data);
         setTotal(res.data.total);
       } catch (error) {
@@ -232,19 +219,23 @@ export default function Products() {
         <Outlet />
       )}
 
-      <ProductModal />
+      <ProductModal setConfirm={setConfirm} />
       <IsAddProduct />
       <ConfirmationModal
         isOpen={confirm.open}
         onClose={() => setConfirm((prev) => ({ ...prev, open: false }))}
         message={
+          confirm.id ? (
           <span>
             Siz{" "}
             <span className="text-red-500 font-semibold">{confirm.name}</span>{" "} ni
             o'chirmoqchimisiz?
           </span>
+          ) : (
+            "Siz yana mahsulot qo'shmoqchimisiz?"
+          )
         }
-        onConfirm={handleDelete}
+        onConfirm={confirm.id ? handleDelete : onOpen}
       />
     </div>
   );

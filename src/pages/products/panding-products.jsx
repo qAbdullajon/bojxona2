@@ -2,16 +2,29 @@ import React, { useEffect, useState } from "react";
 import GlobalTable from "../../components/global-table";
 import $api from "../../http/api";
 import { format } from "date-fns";
-import { ArrowRightFromLine, Check, CircleCheck, Pencil } from "lucide-react";
+import {
+  ArrowRightFromLine,
+  Check,
+  CircleCheck,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import NoData from "../../assets/no-data.png";
 import { Box, Dialog, Typography, Checkbox } from "@mui/material";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useProductStore } from "../../hooks/useModalState";
 import { notification } from "../../components/notification";
+import ConfirmationModal from "../../components/Add-product/IsAddProduct";
 
 export default function PandingProducts() {
-  const { createData, setEditData, onOpen: openModal } = useProductStore();
-  const [data, setData] = useState([]);
+  const {
+    createData,
+    setEditData,
+    onOpen: openModal,
+    setPandingData,
+    deleteItem,
+    pandingData,
+  } = useProductStore();
   const [total, setTotal] = useState(0);
   const [searchParams] = useSearchParams();
   const search = searchParams.get("search");
@@ -23,6 +36,11 @@ export default function PandingProducts() {
     rowsPerPage: 100,
     currentPage: 1,
   });
+  const [confirm, setConfirm] = useState({
+    open: false,
+    id: null,
+    name: null,
+  });
   const [selectedProducts, setSelectedProducts] = useState([]); // Tanlangan mahsulotlar
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false); // Bir nechta tasdiqlash dialogi
 
@@ -32,9 +50,13 @@ export default function PandingProducts() {
       field: "checkbox",
       headerName: (
         <Checkbox
-          checked={selectedProducts.length === data.length && data.length > 0}
+          checked={
+            selectedProducts.length === pandingData.length &&
+            pandingData.length > 0
+          }
           indeterminate={
-            selectedProducts.length > 0 && selectedProducts.length < data.length
+            selectedProducts.length > 0 &&
+            selectedProducts.length < pandingData.length
           }
           onChange={(e) => handleSelectAll(e)}
         />
@@ -51,7 +73,7 @@ export default function PandingProducts() {
   // Barchasini tanlash/olib tashlash
   const handleSelectAll = (event) => {
     if (event.target.checked) {
-      setSelectedProducts(data.map((item) => item.id));
+      setSelectedProducts(pandingData.map((item) => item.id));
     } else {
       setSelectedProducts([]);
     }
@@ -83,7 +105,7 @@ export default function PandingProducts() {
       );
       setSelectedProducts([]);
       setBulkConfirmOpen(false);
-      
+
       // Ma'lumotlarni yangilash
       const res = await $api.get("/products/get/access?access_product=false", {
         params: {
@@ -92,10 +114,25 @@ export default function PandingProducts() {
           search: search,
         },
       });
-      setData(res.data.productData);
+      console.log(res);
+
+      setPandingData(res.data.productData);
       setTotal(res.data.total);
     } catch (error) {
       notification(error.response?.data?.message || "Xatolik yuz berdi");
+    }
+  };
+  const handleDelete = async () => {
+    if (confirm.open) {
+      try {
+        const res = await $api.delete(`products/delete/${confirm.id}`);
+        if (res.status === 200) {
+          deleteItem(confirm.id);
+          setConfirm((prev) => ({ ...prev, open: false }));
+        }
+      } catch (error) {
+        console.error("Delete error:", error);
+      }
     }
   };
 
@@ -109,16 +146,19 @@ export default function PandingProducts() {
       if (res.status === 200) {
         setOpen(false);
         notification("Mahsulot muvaffaqiyatli tasdiqlandi", "success");
-        
+
         // Ma'lumotlarni yangilash
-        const res = await $api.get("/products/get/access?access_product=false", {
-          params: {
-            page: pagination.currentPage,
-            limit: pagination.rowsPerPage,
-            search: search,
-          },
-        });
-        setData(res.data.productData);
+        const res = await $api.get(
+          "/products/get/access?access_product=false",
+          {
+            params: {
+              page: pagination.currentPage,
+              limit: pagination.rowsPerPage,
+              search: search,
+            },
+          }
+        );
+        setPandingData(res.data.productData);
         setTotal(res.data.total);
       }
     } catch (error) {
@@ -129,14 +169,17 @@ export default function PandingProducts() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await $api.get("/products/get/access?access_product=false", {
-          params: {
-            page: pagination.currentPage,
-            limit: pagination.rowsPerPage,
-            search: search,
-          },
-        });
-        setData(res.data.productData);
+        const res = await $api.get(
+          "/products/get/access?access_product=false",
+          {
+            params: {
+              page: pagination.currentPage,
+              limit: pagination.rowsPerPage,
+              search: search,
+            },
+          }
+        );
+        setPandingData(res.data.productData);
         setTotal(res.data.total);
       } catch (error) {
         console.error("Xatolik yuz berdi:", error);
@@ -158,43 +201,61 @@ export default function PandingProducts() {
   };
 
   const editData = (row) => {
-    setEditData(row)
-    openModal()
-  }
+    setEditData(row);
+    openModal();
+  };
+  console.log(pandingData);
 
-  const formattedRows = data.map((row, index) => ({
-    ...row,
-    id: index + 1,
-    checkbox: (
-      <Checkbox
-        checked={selectedProducts.includes(row.id)}
-        onChange={() => handleSelectProduct(row.id)}
-      />
-    ),
-    createdAt: format(new Date(row.createdAt), "dd-MM-yyyy"),
-    action: (
-      <div className="flex gap-4">
-        <button
-          onClick={() => onOpen(row)}
-          className="border border-gray-500 rounded-full p-1 cursor-pointer"
-        >
-          <Check size={17} />
-        </button>
-         <button
-          onClick={() => editData(row)}
-          className="border border-gray-500 rounded-full p-1 cursor-pointer"
-        >
-          <Pencil size={17} />
-        </button>
-        <button
-          className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
-          onClick={() => navigate(`/maxsulotlar/${row.id}`)}
-        >
-          <ArrowRightFromLine size={16} />
-        </button>
-      </div>
-    ),
-  }));
+  const formattedRows =
+    pandingData.length > 0 &&
+    pandingData.map((row, index) => ({
+      ...row,
+      id: index + 1,
+      checkbox: (
+        <Checkbox
+          checked={selectedProducts.includes(row.id)}
+          onChange={() => handleSelectProduct(row.id)}
+        />
+      ),
+      createdAt: row?.createdAt
+        ? format(new Date(row?.createdAt), "dd-MM-yyyy")
+        : "",
+      action: (
+        <div className="flex gap-4">
+          <button
+            onClick={() => onOpen(row)}
+            className="border border-gray-500 rounded-full p-1 cursor-pointer"
+          >
+            <Check size={17} />
+          </button>
+          <button
+            onClick={() =>
+              setConfirm((prev) => ({
+                ...prev,
+                open: true,
+                name: row.name,
+                id: row.id,
+              }))
+            }
+            className="border border-gray-500 rounded-full p-1 cursor-pointer"
+          >
+            <Trash2 size={17} />
+          </button>
+          <button
+            onClick={() => editData(row)}
+            className="border border-gray-500 rounded-full p-1 cursor-pointer"
+          >
+            <Pencil size={17} />
+          </button>
+          <button
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
+            onClick={() => navigate(`/maxsulotlar/${row.id}`)}
+          >
+            <ArrowRightFromLine size={16} />
+          </button>
+        </div>
+      ),
+    }));
 
   const handlePageChange = (event, newPage) => {
     setPagination((prev) => ({
@@ -282,6 +343,19 @@ export default function PandingProducts() {
           </button>
         </div>
       </Dialog>
+
+      <ConfirmationModal
+        isOpen={confirm.open}
+        onClose={() => setConfirm((prev) => ({ ...prev, open: false }))}
+        message={
+          <span>
+            Siz{" "}
+            <span className="text-red-500 font-semibold">{confirm.name}</span>{" "}
+            ni o'chirmoqchimisiz?
+          </span>
+        }
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

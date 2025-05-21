@@ -84,6 +84,20 @@ export const useProductStore = create((set) => ({
   onOpen: () => set({ open: true }),
   setData: (all_data) => set({ data: [...all_data] }),
   setTotal: (num) => set({ total: num }),
+  pandingData: [],
+  setPandingData: (data) =>
+    set({
+      pandingData: Array.isArray(data) ? data : [],
+    }),
+  createPandingData: (item) =>
+    set((state) => ({
+      pandingData: [item, ...state.pandingData],
+    })),
+  deleteItem: (id) =>
+    set((state) => ({
+      pandingData: state.pandingData.filter((item) => item.id !== id),
+    })),
+
   createData: (product) =>
     set((store) => {
       if (store.total < 10) {

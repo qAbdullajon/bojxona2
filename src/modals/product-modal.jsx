@@ -1,16 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import {
-  Box,
-  Modal,
-  CircularProgress,
-  Button,
-  ClickAwayListener,
-  TextField,
-} from "@mui/material";
-import { X, ChevronDown } from "lucide-react";
-import { useEventStore, useProductStore } from "../hooks/useModalState";
+import { Box, Modal, CircularProgress, ClickAwayListener } from "@mui/material";
+import { X, ChevronDown, LoaderCircle } from "lucide-react";
+import { useProductStore } from "../hooks/useModalState";
 import $api from "../http/api";
 import { notification } from "../components/notification";
+import debounce from "lodash.debounce";
 
 const style = {
   position: "absolute",
@@ -41,9 +35,9 @@ const units = [
   "tugun / bog'lama",
 ];
 
-export default function ProductModal() {
-  const { open, onClose, editData } = useProductStore();
-  const { toggleIsAddModal, setType, setText } = useEventStore();
+export default function ProductModal({ setConfirm }) {
+  const { open, onClose, editData, createPandingData } = useProductStore();
+  const [submitLoading, setSubmitLoading] = useState(false);
   const loadMoreRef = useRef({});
   const dropdownRef = useRef({});
 
@@ -194,7 +188,6 @@ export default function ProductModal() {
   }, [dropdowns.type.selected, updateDropdown]);
 
   useEffect(() => {
-    console.log("editData:", editData);
     if (open) {
       setFormData({
         name: editData?.name || "",
@@ -264,10 +257,8 @@ export default function ProductModal() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    console.log("handleChange:", { name, value });
     setFormData((prev) => {
       const newState = { ...prev, [name]: value };
-      console.log("New formData:", newState);
       return newState;
     });
   };
@@ -297,6 +288,7 @@ export default function ProductModal() {
       };
 
       try {
+        setSubmitLoading(true);
         const res = editData?.id
           ? await $api.patch(`/products/update/${editData.id}`, completeData)
           : await $api.post("/products/create", completeData);
@@ -308,24 +300,26 @@ export default function ProductModal() {
             "success"
           );
           if (!editData?.id) {
-            toggleIsAddModal();
-            setType("create-product");
-            setText("Yana mahsulot qo'shmoqchimisiz?");
+            createPandingData(res.data.data);
+            if (setConfirm) {
+              setConfirm((prev) => ({
+                ...prev,
+                open: true,
+                message: "Siz yana mahsulot qo'shmoqchimisiz?",
+              }));
+            }
+            // toggleIsAddModal();
+            // setType("create-product");
+            // setText("Yana mahsulot qo'shmoqchimisiz?");
           }
         }
       } catch (error) {
         notification(error?.response?.data?.message || "Xatolik yuz berdi");
+      } finally {
+        setSubmitLoading(false);
       }
     },
-    [
-      dropdowns,
-      formData,
-      editData,
-      handleClose,
-      toggleIsAddModal,
-      setType,
-      setText,
-    ]
+    [dropdowns, formData, editData, handleClose]
   );
 
   const CustomSelect = ({
@@ -344,6 +338,14 @@ export default function ProductModal() {
         dropdownRef.current[dropdownName] = scrollableRef.current;
       }
     }, [dropdown.show, dropdownName]);
+
+    // Debounced fetchData funksiyasi
+    const debouncedFetch = useCallback(
+      debounce((dropdownName, endpoint, params) => {
+        fetchData(dropdownName, endpoint, params);
+      }, 300),
+      [fetchData]
+    );
 
     const toggleDropdown = useCallback(() => {
       if (disabled) return;
@@ -374,6 +376,8 @@ export default function ProductModal() {
       dropdown.search,
       dropdowns.type.selected,
       dropdown.page,
+      fetchChildTypes,
+      fetchData,
     ]);
 
     const handleSelect = useCallback(
@@ -414,6 +418,30 @@ export default function ProductModal() {
       dropdown.page,
     ]);
 
+    const handleSearchChange = useCallback(
+      (value) => {
+        updateDropdown(dropdownName, {
+          search: value,
+          page: 1,
+          items: [],
+        });
+        if (dropdownName !== "childType") {
+          debouncedFetch(
+            dropdownName,
+            dropdownName === "event"
+              ? value
+                ? "events/search"
+                : "events/all"
+              : dropdownName === "type"
+              ? "product/types/all"
+              : "warehouses/all",
+            { search: value, page: 1 }
+          );
+        }
+      },
+      [dropdownName, debouncedFetch]
+    );
+
     const selectedItem = dropdown.items.find(
       (item) => item.id === dropdown.selected
     );
@@ -453,13 +481,7 @@ export default function ProductModal() {
                   <input
                     type="text"
                     value={dropdown.search}
-                    onChange={(e) =>
-                      updateDropdown(dropdownName, {
-                        search: e.target.value,
-                        page: 1,
-                        items: [],
-                      })
-                    }
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     placeholder={searchPlaceholder}
                     className="w-full border border-gray-300 rounded-md p-2 focus:border-gray-500 focus:ring-gray-500"
                     autoFocus
@@ -551,6 +573,9 @@ export default function ProductModal() {
     <Modal
       open={open}
       onClose={handleClose}
+      BackdropProps={{
+        style: { backgroundColor: "rgba(0, 0, 0, 0.4)" }, // bu esa qorong‘iroq
+      }}
       disableEnforceFocus
       disableAutoFocus
     >
@@ -682,17 +707,25 @@ export default function ProductModal() {
           </div>
 
           <div className="flex gap-4 justify-end mt-4">
-            <Button
+            <button
               type="button"
               onClick={handleClose}
-              variant="outlined"
-              color="secondary"
+              className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
             >
               Bekor qilish
-            </Button>
-            <Button type="submit" variant="contained" color="primary">
-              Saqlash
-            </Button>
+            </button>
+            <button
+              type="submit"
+              className="w-[100px] py-2 bg-[#249B73] rounded-md text-white hover:bg-[#1d7a5a] transition-colors"
+            >
+              {submitLoading ? (
+                <div className="animate-spin flex items-center justify-center">
+                  <LoaderCircle />
+                </div>
+              ) : (
+                "Saqlash"
+              )}
+            </button>
           </div>
         </form>
       </Box>

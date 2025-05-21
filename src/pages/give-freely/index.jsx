@@ -25,8 +25,8 @@ export default function GiveFreely() {
   const columns = [
     { field: "id", headerName: "№" },
     { field: "event_number", headerName: "Yuk xati raqami" },
-    { field: "mib_number", headerName: "Mibning dalolatnoma raqami" },
-    { field: "mib_region", headerName: "Mibning hududi" },
+    { field: "mib_number", headerName: "MIB ning dalolatnoma raqami" },
+    { field: "mib_region", headerName: "MIB ning hududi" },
     { field: "sud_number", headerName: "Sudning ijro varaqa no'meri" },
     { field: "sud_region", headerName: "Sudning hududi" },
     { field: "sud_date", headerName: "Sudning sanasi" },
