@@ -9,6 +9,8 @@ import {
   Calendar,
   Plus,
   Search,
+  Eye,
+  X,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import GlobalTable from "../../components/global-table";
@@ -21,6 +23,19 @@ export default function UsersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");
+
+  const [imageModal, setImageModal] = useState({ open: false, url: "" });
+
+  const handleOpen = (imgPath) => {
+    if (!imgPath) return;
+    const fullUrl = `${import.meta.env.VITE_BASE_URL}/${imgPath}`;
+    setImageModal({ open: true, url: fullUrl });
+  };
+
+  const handleClose = () => {
+    setImageModal({ open: false, url: "" });
+  };
+
   const [pagination, setPagination] = useState({
     page: 0,
     rowsPerPage: 100,
@@ -35,7 +50,6 @@ export default function UsersList() {
     { field: "region", headerName: "Hudud" },
     { field: "role", headerName: "Roli" },
     { field: "last_login", headerName: "Faollik" },
-    // { field: "actions", headerName: "Harakatlar" },
   ];
 
   const fetchData = async () => {
@@ -49,8 +63,6 @@ export default function UsersList() {
           },
         }
       );
-      console.log(res);
-        
 
       setData(res.data.employees || []);
       setPagination((prev) => ({
@@ -94,26 +106,37 @@ export default function UsersList() {
     let roleText = "Musodara bo‘limi xodimi";
     let roleClass = "bg-green-100 text-green-800";
     if (employee.is_super_admin) {
-      roleText = "IT bolim xodimi";
+      roleText = "IT bo‘lim xodimi";
       roleClass = "bg-purple-100 text-purple-800";
     } else if (employee.is_admin) {
       roleText = "Admin";
       roleClass = "bg-blue-100 text-blue-800";
     }
 
+    const avatarUrl = employee.avatar
+      ? `${import.meta.env.VITE_BASE_URL}/${employee.avatar}`
+      : null;
+
     return {
       id: index + 1 + pagination.page * pagination.rowsPerPage,
       full_name: (
         <div className="flex items-center">
-          <div className="flex-shrink-0 h-10 w-10">
-            {employee.avatar ? (
+          <div className="relative group flex-shrink-0 h-10 w-10">
+            <button
+              onClick={() => handleOpen(employee.avatar)}
+              className="absolute z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition duration-300 cursor-pointer"
+            >
+              <Eye className="w-4 h-4 text-green-600" />
+            </button>
+
+            {avatarUrl ? (
               <img
-                className="h-10 w-10 rounded-full"
-                src={`${import.meta.env.VITE_BASE_URL}/${employee.avatar}`}
-                alt=""
+                className="h-10 w-10 rounded-full object-cover border border-white shadow"
+                src={avatarUrl}
+                alt="Employee Avatar"
               />
             ) : (
-              <div className="h-10 w-10 rounded-full bg-[#10865e]/10 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-[#10865e]/10 flex items-center justify-center border border-white shadow">
                 <User className="h-6 w-6 text-[#10865e]" />
               </div>
             )}
@@ -163,7 +186,7 @@ export default function UsersList() {
             Yaratilgan: {formatDate(employee.createdAt).split(",")[0]}
           </div>
         </div>
-      )
+      ),
     };
   });
 
@@ -201,6 +224,24 @@ export default function UsersList() {
         onPageChange={handlePageChange}
         onRowsPerPageChange={handleRowsPerPageChange}
       />
+
+      {imageModal.open && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 p-4">
+          <div className="relative max-w-4xl w-full max-h-[90vh]">
+            <img
+              src={imageModal.url}
+              alt="Preview"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+            <button
+              onClick={handleClose}
+              className="absolute -top-10 right-0 p-2 bg-white rounded-full text-gray-700 hover:text-red-500 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

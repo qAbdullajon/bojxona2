@@ -35,59 +35,63 @@ const units = [
   "tugun / bog'lama",
 ];
 
+const initialFormData = {
+  name: "",
+  quantity: "",
+  price: "",
+  unit: "",
+  description: "",
+  expiration_date: "",
+};
+
+const initialDropdowns = {
+  warehouse: {
+    search: "",
+    selected: null,
+    items: [],
+    loading: false,
+    page: 1,
+    hasMore: true,
+    show: false,
+  },
+  event: {
+    search: "",
+    selected: null,
+    items: [],
+    loading: false,
+    page: 1,
+    hasMore: true,
+    show: false,
+  },
+  type: {
+    search: "",
+    selected: null,
+    items: [],
+    loading: false,
+    page: 1,
+    hasMore: true,
+    show: false,
+  },
+  childType: {
+    search: "",
+    selected: null,
+    items: [],
+    loading: false,
+    page: 1,
+    hasMore: true,
+    show: false,
+  },
+};
+
 export default function ProductModal({ setConfirm }) {
-  const { open, onClose, editData, createPandingData } = useProductStore();
+  const { open, onClose, editData, createPandingData, setEditData } = useProductStore();
   const [submitLoading, setSubmitLoading] = useState(false);
   const loadMoreRef = useRef({});
   const dropdownRef = useRef({});
 
-  const [dropdowns, setDropdowns] = useState({
-    warehouse: {
-      search: "",
-      selected: null,
-      items: [],
-      loading: false,
-      page: 1,
-      hasMore: true,
-      show: false,
-    },
-    event: {
-      search: "",
-      selected: null,
-      items: [],
-      loading: false,
-      page: 1,
-      hasMore: true,
-      show: false,
-    },
-    type: {
-      search: "",
-      selected: null,
-      items: [],
-      loading: false,
-      page: 1,
-      hasMore: true,
-      show: false,
-    },
-    childType: {
-      search: "",
-      selected: null,
-      items: [],
-      loading: false,
-      page: 1,
-      hasMore: true,
-      show: false,
-    },
-  });
-
-  const [formData, setFormData] = useState({
-    name: "",
-    quantity: "",
-    price: "",
-    unit: "",
-    description: "",
-    expiration_date: "",
-  });
+  // Use the constants directly for initial state
+  const [dropdowns, setDropdowns] = useState(initialDropdowns);
+  const [formData, setFormData] = useState(initialFormData);
 
   const updateDropdown = useCallback((dropdownName, updates) => {
     setDropdowns((prev) => ({
@@ -152,73 +156,53 @@ export default function ProductModal({ setConfirm }) {
 
   useEffect(() => {
     if (open) {
-      setFormData({
-        name: editData?.name || "",
-        quantity: editData?.quantity || "",
-        price: editData?.price === "0.00" ? "0" : editData?.price || "",
-        unit: editData?.unit || "",
-        description: editData?.description || "",
-        expiration_date: editData?.expiration_date || "",
-      });
+      if (editData) {
+        // Only set form data if we're in edit mode
+        setFormData({
+          name: editData.name || "",
+          quantity: editData.quantity || "",
+          price: editData.price === "0.00" ? "0" : editData.price || "",
+          unit: editData.unit || "",
+          description: editData.description || "",
+          expiration_date: editData.expiration_date || "",
+        });
 
-      setDropdowns((prev) => ({
-        ...prev,
-        warehouse: { ...prev.warehouse, selected: editData?.warehouseId || null },
-        event: { ...prev.event, selected: editData?.eventId || null },
-        type: { ...prev.type, selected: editData?.typeId || null },
-        childType: { ...prev.childType, selected: editData?.childTypeId || null },
-      }));
+        setDropdowns((prev) => ({
+          ...prev,
+          warehouse: {
+            ...prev.warehouse,
+            selected: editData.warehouseId || null,
+            items: prev.warehouse.items, // Keep existing items
+          },
+          event: {
+            ...prev.event,
+            selected: editData.eventId || null,
+            items: prev.event.items,
+          },
+          type: {
+            ...prev.type,
+            selected: editData.typeId || null,
+            items: prev.type.items,
+          },
+          childType: {
+            ...prev.childType,
+            selected: editData.childTypeId || null,
+            items: prev.childType.items,
+          },
+        }));
+      } else {
+        // Reset to initial state when opening in create mode
+        setFormData(initialFormData);
+        setDropdowns(initialDropdowns);
+      }
     }
   }, [open, editData]);
 
   const handleClose = useCallback(() => {
+    setFormData(initialFormData);
+    setDropdowns(initialDropdowns);
     onClose();
-    setFormData({
-      name: "",
-      quantity: "",
-      price: "",
-      unit: "",
-      description: "",
-      expiration_date: "",
-    });
-    setDropdowns({
-      warehouse: {
-        search: "",
-        selected: null,
-        items: [],
-        loading: false,
-        page: 1,
-        hasMore: true,
-        show: false,
-      },
-      event: {
-        search: "",
-        selected: null,
-        items: [],
-        loading: false,
-        page: 1,
-        hasMore: true,
-        show: false,
-      },
-      type: {
-        search: "",
-        selected: null,
-        items: [],
-        loading: false,
-        page: 1,
-        hasMore: true,
-        show: false,
-      },
-      childType: {
-        search: "",
-        selected: null,
-        items: [],
-        loading: false,
-        page: 1,
-        hasMore: true,
-        show: false,
-      },
-    });
+    setEditData({})
   }, [onClose]);
 
   const handleChange = (e) => {
@@ -308,7 +292,7 @@ export default function ProductModal({ setConfirm }) {
               : "events/all"
             : dropdownName === "type"
             ? value
-              ? "product/types/search"
+              ? "product/types/all"
               : "product/types/all"
             : dropdownName === "childType"
             ? `/child/types/get/by/type/${dropdowns.type.selected}`
@@ -333,7 +317,14 @@ export default function ProductModal({ setConfirm }) {
       ) {
         debouncedFetch(dropdown.search, 1);
       }
-    }, [dropdown.show, dropdown.items.length, dropdown.search, dropdown.loading, disabled, debouncedFetch]);
+    }, [
+      dropdown.show,
+      dropdown.items.length,
+      dropdown.search,
+      dropdown.loading,
+      disabled,
+      debouncedFetch,
+    ]);
 
     const handleSelect = useCallback(
       (id) => {
@@ -356,7 +347,13 @@ export default function ProductModal({ setConfirm }) {
       if (!dropdown.hasMore || dropdown.loading) return;
       updateDropdown(dropdownName, { page: dropdown.page + 1 });
       debouncedFetch(dropdown.search, dropdown.page + 1);
-    }, [dropdown.hasMore, dropdown.loading, dropdown.search, dropdown.page, debouncedFetch]);
+    }, [
+      dropdown.hasMore,
+      dropdown.loading,
+      dropdown.search,
+      dropdown.page,
+      debouncedFetch,
+    ]);
 
     const handleSearchChange = useCallback(
       (value) => {
@@ -371,7 +368,9 @@ export default function ProductModal({ setConfirm }) {
       [dropdownName, debouncedFetch]
     );
 
-    const selectedItem = dropdown.items.find((item) => item.id === dropdown.selected);
+    const selectedItem = dropdown.items.find(
+      (item) => item.id === dropdown.selected
+    );
 
     return (
       <div className="relative mb-4">

@@ -60,7 +60,7 @@ export default function Omborxonalar() {
         setData(res.data.warehouses);
         setTotal(res.data.totalItems);
       } catch (error) {
-        notification(error.response?.data?.message)
+        notification(error.response?.data?.message);
       } finally {
         setLoading(false);
       }
@@ -68,6 +68,10 @@ export default function Omborxonalar() {
 
     getAllData();
   }, [pagination.currentPage, pagination.rowsPerPage, searchQuery]);
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
 
   const formattedRows = data.map((row, index) => {
     return {
@@ -178,7 +182,7 @@ export default function Omborxonalar() {
           <CircularProgress color="success" />
         </div>
       ) : total === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

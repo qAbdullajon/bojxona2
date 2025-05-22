@@ -1,5 +1,6 @@
 import {
   Bell,
+  CheckCheck,
   ChevronDown,
   LogOut,
   Search,
@@ -26,6 +27,7 @@ export default function Layout() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [profileData, setProfileData] = useState({});
   const [notifications, setNotifications] = useState([]);
+  const [isNotView, setIsNotView] = useState(0);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [rowsPerPage] = useState(20); // Adjust as needed
@@ -43,6 +45,10 @@ export default function Layout() {
       const response = await $api.get("/notifications/my/notifications", {
         params: { page, limit: rowsPerPage },
       });
+      const res = await $api.get(`/notifications/check`);
+      if (res.status === 200) {
+        setIsNotView(res?.data?.missed_notifications_count);
+      }
       setNotifications(response.data.data || []);
       setTotal(response.data.pagination?.total || 0);
     } catch (error) {
@@ -139,6 +145,21 @@ export default function Layout() {
     }
   };
 
+  const handleAllCheck = async () => {
+    try {
+      const res = await $api.patch(`/notifications/update/all`);
+      if (res.status === 200) {
+        setIsNotView(0);
+        setIsNotificationOpen(false);
+        setNotifications((prev) =>
+          prev.map((item) => ({ ...item, is_view: true }))
+        );
+      }
+    } catch (error) {
+      notification(error?.response?.data?.message);
+    }
+  };
+
   return (
     <div className="min-h-screen relative bg-[#F5F8F9]">
       {/* HEADER */}
@@ -163,19 +184,27 @@ export default function Layout() {
           <div className="relative" ref={notificationRef}>
             <button
               onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-              className="relative p-1 hover:bg-[#1e7d5d] rounded-full transition-colors"
+              className="relative p-1 cursor-pointer hover:bg-[#1e7d5d] rounded-full transition-colors"
             >
               <Bell size={18} />
-              {total > 0 && (
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              {isNotView > 0 && (
+                <span className="absolute -top-1 -right-0.5 w-4 h-4 text-[10px] flex items-center justify-center bg-red-500 rounded-full">
+                  {isNotView}
+                </span>
               )}
             </button>
             {isNotificationOpen && (
               <div className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-xl py-2 z-50 border border-gray-100 animate-fadeIn">
-                <div className="px-4 py-2 border-b border-gray-100">
+                <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between">
                   <p className="text-sm font-medium text-gray-800">
                     Bildirishnomalar
                   </p>
+                  <button
+                    onClick={handleAllCheck}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 cursor-pointer bg-gray-100 rounded-full"
+                  >
+                    <CheckCheck color="black" />
+                  </button>
                 </div>
                 <div className="max-h-64 overflow-y-auto">
                   {loading ? (

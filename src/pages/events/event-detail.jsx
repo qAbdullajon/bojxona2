@@ -13,6 +13,8 @@ import { useCheckedStore } from "../../hooks/useCheckedStore";
 import ChangeStatus from "../products/change-status";
 import { useProductStore } from "../../hooks/useModalState";
 import ConfirmationModal from "../../components/Add-product/IsAddProduct";
+import StatusSelector from "../../components/status-selector";
+import ProductTypeSelector from "../../components/product-type";
 
 export default function EventDetail() {
   const [loading, setLoading] = useState(false);
@@ -88,12 +90,26 @@ export default function EventDetail() {
     },
     { field: "index", headerName: "№" },
     { field: "name", headerName: "Nomi" },
-    { field: "quantity", headerName: "Soni" },
-    { field: "total_price", headerName: "Umumiy narxi" },
+    { field: "quantity", headerName: "Soni", vector: true },
+    { field: "total_price", headerName: "Umumiy narxi", vector: true },
     { field: "offender_full_name", headerName: "Huquqbuzar I.F.O." },
-    { field: "status", headerName: "Status" },
+    {
+      field: "status",
+      headerName: (
+        <div>
+          <StatusSelector />
+        </div>
+      ),
+    },
     { field: "event", headerName: "Yuk xati" },
-    { field: "type", headerName: "Mahsulot turi" },
+    {
+      field: "type",
+      headerName: (
+        <div>
+          <ProductTypeSelector />
+        </div>
+      ),
+    },
     {
       field: "actions",
       headerName: pricesSubmitted
@@ -275,6 +291,10 @@ export default function EventDetail() {
     getAllStatus();
   }, [page, rowsPerPage, searchQuery]);
 
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery]);
+
   const originalRows = (data || []).map((item, i) => ({
     ...item,
     index: i + 1,
@@ -393,7 +413,7 @@ export default function EventDetail() {
             <CircularProgress color="success" />
           </div>
         ) : data?.length === 0 ? (
-          <Box textAlign="center" py={10}>
+          <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
             <Box
               component="img"
               src={NoData}

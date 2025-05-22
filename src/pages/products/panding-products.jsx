@@ -114,8 +114,6 @@ export default function PandingProducts() {
           search: search,
         },
       });
-      console.log(res);
-
       setPandingData(res.data.productData);
       setTotal(res.data.total);
     } catch (error) {
@@ -289,7 +287,7 @@ export default function PandingProducts() {
       )}
 
       {total === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

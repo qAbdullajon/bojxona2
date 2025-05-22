@@ -87,6 +87,10 @@ export default function Shops() {
     fetchShops();
   }, [pagination.page, pagination.rowsPerPage, searchQuery]);
 
+    useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
+
   const handleEdit = (row) => {
     setEditData(row);
     onOpen();
@@ -141,7 +145,7 @@ export default function Shops() {
             <CircularProgress color="success" />
           </div>
         ) : data.length === 0 ? (
-          <Box textAlign="center" py={10}>
+          <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
             <Box
               component="img"
               src={NoData}

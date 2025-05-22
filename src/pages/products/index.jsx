@@ -18,7 +18,7 @@ import IsAddProduct from "../../components/Add-product/IsAddProduct";
 import ConfirmationModal from "../../components/Add-product/IsAddProduct";
 
 export default function Products() {
-  const { onOpen, data, setData, total, setTotal } = useProductStore();
+  const { onOpen, data, setData, total, setTotal, setEditData } = useProductStore();
   const { setName } = usePathStore();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -56,7 +56,7 @@ export default function Products() {
       }
     }
   };
-  
+
   useEffect(() => {
     const getAllProducts = async () => {
       try {
@@ -84,6 +84,14 @@ export default function Products() {
     getAllProducts();
   }, [pagination.currentPage, pagination.rowsPerPage, searchQuery]);
 
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
+
+  const editData = (row) => {
+    setEditData(row);
+    onOpen();
+  };
   const formattedRows = data.map((row, index) => ({
     ...row,
     id: index + 1,
@@ -100,6 +108,12 @@ export default function Products() {
     type: row.type_product?.product_type || "Noma'lum",
     actions: (
       <div className="flex items-center gap-2">
+        <button
+          onClick={() => editData(row)}
+          className="border border-gray-500 rounded-full p-1 cursor-pointer"
+        >
+          <Pencil size={17} />
+        </button>
         <button
           className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
           onClick={() =>
@@ -193,7 +207,7 @@ export default function Products() {
             <CircularProgress color="success" />
           </div>
         ) : total === 0 ? (
-          <Box textAlign="center" py={10}>
+          <Box textAlign="center" py={10} sx={{ userSelect: "none" }}>
             <Box
               component="img"
               src={NoData}
@@ -226,11 +240,11 @@ export default function Products() {
         onClose={() => setConfirm((prev) => ({ ...prev, open: false }))}
         message={
           confirm.id ? (
-          <span>
-            Siz{" "}
-            <span className="text-red-500 font-semibold">{confirm.name}</span>{" "} ni
-            o'chirmoqchimisiz?
-          </span>
+            <span>
+              Siz{" "}
+              <span className="text-red-500 font-semibold">{confirm.name}</span>{" "}
+              ni o'chirmoqchimisiz?
+            </span>
           ) : (
             "Yangi mahsulot qo'shmoqchimisiz?"
           )

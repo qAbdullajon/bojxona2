@@ -1,4 +1,11 @@
-import { ArrowRightFromLine, CirclePlus, Pencil, Trash } from "lucide-react";
+import {
+  ArrowRightFromLine,
+  ChevronDown,
+  ChevronUp,
+  CirclePlus,
+  Pencil,
+  Trash,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import GlobalTable from "../../components/global-table";
 import { useEventStore } from "../../hooks/useModalState";
@@ -13,6 +20,10 @@ import { getStatusStyle } from "../../utils/status";
 import IsAddProduct from "../../components/Add-product/IsAddProduct";
 import { notification } from "../../components/notification";
 import ConfirmationModal from "../../components/Add-product/IsAddProduct";
+import StatusSelector from "../../components/status-selector";
+import ShipperSelector from "../../components/shipper-selector";
+import { useSortFilterStore } from "../../hooks/useFilterStore";
+import DoubleDateModal from "../../components/DoubleDateModal";
 
 export default function Events() {
   const navigate = useNavigate();
@@ -32,8 +43,16 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");
-  const [confirm, setConfirm] = useState({ open: false, id: null, event_number: null });
-
+  const [confirm, setConfirm] = useState({
+    open: false,
+    id: null,
+    event_number: null,
+  });
+  const { toggleGrow, setField } = useSortFilterStore();
+  const handleSort = (field) => {
+    setField(field);
+    toggleGrow();
+  };
   useEffect(() => {
     const fetchData = async (page = 1, limit = 100) => {
       setLoading(true);
@@ -55,14 +74,57 @@ export default function Events() {
     fetchData(page + 1, rowsPerPage);
   }, [page, rowsPerPage, searchQuery]);
 
+  useEffect(()=>{
+    setPage(0)
+  },[searchQuery])
+
   const columns = [
     { field: "index", headerName: "№" },
     { field: "event_number", headerName: "Yuk xati raqami" },
-    { field: "date", headerName: "Yuk xati sanasi" },
-    { field: "productsCount", headerName: "Maxsulotlar turining soni" },
-    { field: "totalQuantity", headerName: "Umumiy mahsulotlar soni" },
-    { field: "shipperName", headerName: "Yetkazib beruvchi" },
-    { field: "status", headerName: "Status" },
+    { field: "date", headerName: (
+      <DoubleDateModal />
+    ) },
+    {
+      field: "productsCount",
+      headerName: (
+        <div
+          onClick={() => handleSort("productsCount")}
+          className="flex items-center justify-between cursor-pointer"
+        >
+          <span>Maxsulotlar turining soni</span>
+        </div>
+      ),
+      vector: true,
+    },
+
+    {
+      field: "totalQuantity",
+      headerName: (
+        <div
+          onClick={() => handleSort("totalQuantity")}
+          className="flex items-center justify-between cursor-pointer"
+        >
+          <span>Umumiy mahsulotlar soni</span>
+        </div>
+      ),
+      vector: true,
+    },
+    {
+      field: "shipperName",
+      headerName: (
+        <div>
+          <ShipperSelector />
+        </div>
+      ),
+    },
+    {
+      field: "status",
+      headerName: (
+        <div>
+          <StatusSelector />
+        </div>
+      ),
+    },
     { field: "actions", headerName: "Taxrirlash" },
   ];
 
@@ -128,7 +190,12 @@ export default function Events() {
       <div className="flex items-center gap-4">
         <button
           onClick={() =>
-            setConfirm((prev) => ({ ...prev, open: true, id: row.id, event_number: row.event_number }))
+            setConfirm((prev) => ({
+              ...prev,
+              open: true,
+              id: row.id,
+              event_number: row.event_number,
+            }))
           }
           className="w-7 h-7 flex items-center justify-center rounded-full border border-gray-400 cursor-pointer"
         >
@@ -177,7 +244,7 @@ export default function Events() {
           <CircularProgress color="success" />
         </div>
       ) : pageTotal === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}
@@ -209,8 +276,10 @@ export default function Events() {
         message={
           <span>
             Siz{" "}
-            <span className="text-red-500 font-semibold">{confirm.event_number}</span>{" "} id ga tegishli yuk xatini
-            o'chirmoqchimisiz?
+            <span className="text-red-500 font-semibold">
+              {confirm.event_number}
+            </span>{" "}
+            id ga tegishli yuk xatini o'chirmoqchimisiz?
           </span>
         }
       />

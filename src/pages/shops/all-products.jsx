@@ -53,6 +53,7 @@ export default function AllProducts() {
 
   useEffect(() => {
     fetchProducts();
+    setPage(0)
   }, [id, searchQuery]);
 
   const nextButton = (row) => {
@@ -102,7 +103,7 @@ export default function AllProducts() {
           <CircularProgress color="success" />
         </div>
       ) : data.length === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

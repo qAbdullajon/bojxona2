@@ -105,18 +105,18 @@ export const navList = [
     path: "/arxiv",
   },
   {
-    id: 11,
-    name: "Profil",
-    icon: User,
-    color: "#5e35b1", // binafsha - shaxsiy profilga mos
-    path: "/profile",
-  },
-  {
     id: 8,
     name: "Xodimlar",
     icon: UsersRound,
     color: "#fb8c00", // to'q sariq - insonlar, energiya
     path: "/xodimlar",
+  },
+  {
+    id: 11,
+    name: "Profil",
+    icon: User,
+    color: "#5e35b1", // binafsha - shaxsiy profilga mos
+    path: "/profile",
   },
 ];
 

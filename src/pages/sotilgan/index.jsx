@@ -66,6 +66,10 @@ export default function Sotilgan() {
     fetchData();
   }, [pagination.page, pagination.rowsPerPage, searchQuery]);
 
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
+
   const handlePageChange = (event, newPage) => {
     setPagination((prev) => ({
       ...prev,
@@ -97,8 +101,7 @@ export default function Sotilgan() {
       row.document_product[row.document_product.length - 1]?.sud_dalolatnoma ||
       "Yo'q",
     sud_region:
-      row.document_product[row.document_product.length - 1]?.sud_document
-        ?.name,
+      row.document_product[row.document_product.length - 1]?.sud_document?.name,
     sud_date: format(
       row.document_product[row.document_product.length - 1]?.sud_date,
       "yyyy-MM-dd"
@@ -138,7 +141,7 @@ export default function Sotilgan() {
           <CircularProgress color="success" />
         </div>
       ) : data.length === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

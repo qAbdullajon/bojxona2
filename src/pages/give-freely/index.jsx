@@ -64,6 +64,10 @@ export default function GiveFreely() {
     fetchData();
   }, [pagination.page, pagination.rowsPerPage, searchQuery]);
 
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
+
   const handlePageChange = (event, newPage) => {
     setPagination((prev) => ({
       ...prev,
@@ -135,7 +139,7 @@ export default function GiveFreely() {
           <CircularProgress color="success" />
         </div>
       ) : data.length === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

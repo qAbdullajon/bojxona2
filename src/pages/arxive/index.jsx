@@ -40,7 +40,7 @@ export default function Arxive() {
       try {
         setLoading(true);
         const res = await $api.get(
-          `/products/get/archive?page=${pagination.page + 1}&limit=${pagination.rowsPerPage}&search=${searchQuery}`
+          `/products/get/archive?page=${pagination.page + 1}&limit=${pagination.rowsPerPage}&search=${searchQuery || ""}`
         );
         setData(res.data.products);
         setPagination((prev) => ({
@@ -165,7 +165,7 @@ const rows = data.map((row, i) => {
             <CircularProgress color="success" />
           </div>
         ) : pagination.total === 0 ? (
-          <Box textAlign="center" py={10}>
+          <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
             <Box
               component="img"
               src={NoData}

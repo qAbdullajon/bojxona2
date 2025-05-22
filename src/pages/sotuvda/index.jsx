@@ -49,7 +49,7 @@ export default function Sotuvda() {
         }
       );
       console.log(res);
-      
+
       setData(res.data.data.data || []);
       setPagination((prev) => ({
         ...prev,
@@ -65,6 +65,10 @@ export default function Sotuvda() {
   useEffect(() => {
     fetchData();
   }, [pagination.page, pagination.rowsPerPage, searchQuery]);
+
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
 
   const handlePageChange = (event, newPage) => {
     setPagination((prev) => ({
@@ -87,12 +91,21 @@ export default function Sotuvda() {
   const rows = data.map((row, index) => ({
     id: index + 1 + pagination.page * pagination.rowsPerPage,
     name: row.name || "Noma’lum",
-    event_number: '#' + `${row.event_product?.event_number}` || "Noma’lum",
-    mib_region: row.sales_product[row.sales_product.length - 1]?.mib_sales_product?.name || "Yo'q",
-    mib_number: row.sales_product[row.sales_product.length - 1]?.mib_dalolatnoma,
-    sud_number: row.sales_product[row.sales_product.length - 1]?.sud_dalolatnoma || "Yo'q",
-    sud_region: row.sales_product[row.sales_product.length - 1]?.sud_sale_product?.name,
-    sud_date: format(row.sales_product[row.sales_product.length - 1]?.sud_date, 'yyyy-MM-dd'),
+    event_number: "#" + `${row.event_product?.event_number}` || "Noma’lum",
+    mib_region:
+      row.sales_product[row.sales_product.length - 1]?.mib_sales_product
+        ?.name || "Yo'q",
+    mib_number:
+      row.sales_product[row.sales_product.length - 1]?.mib_dalolatnoma,
+    sud_number:
+      row.sales_product[row.sales_product.length - 1]?.sud_dalolatnoma ||
+      "Yo'q",
+    sud_region:
+      row.sales_product[row.sales_product.length - 1]?.sud_sale_product?.name,
+    sud_date: format(
+      row.sales_product[row.sales_product.length - 1]?.sud_date,
+      "yyyy-MM-dd"
+    ),
     total_price: row.total_price || "0",
     status: (
       <span
@@ -128,7 +141,7 @@ export default function Sotuvda() {
           <CircularProgress color="success" />
         </div>
       ) : data.length === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}

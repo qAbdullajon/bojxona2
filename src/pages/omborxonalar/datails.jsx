@@ -17,7 +17,6 @@ export default function WarehousesDetails() {
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get("search");
 
-  const isSearchActive = searchQuery !== null && searchQuery.trim() !== "";
 
   const [pagination, setPagination] = useState({
     page: 0,
@@ -39,7 +38,7 @@ export default function WarehousesDetails() {
       try {
         setLoading(true);
         const res = await $api.get(
-          isSearchActive
+          searchQuery
             ? `/warehouses/product/search?name=${searchQuery}&warehouseId=${parmas.id}`
             : `/warehouses/products/by/${parmas.id}`,
           {
@@ -52,7 +51,7 @@ export default function WarehousesDetails() {
         if (res.status === 200) {
           console.log(res.data);
 
-          setData(isSearchActive ? res.data.events : res.data.events);
+          setData(searchQuery ? res.data.events : res.data.events);
           setTotal(res.data.totalItems);
         }
       } catch (error) {
@@ -65,20 +64,24 @@ export default function WarehousesDetails() {
     getDetails();
   }, [pagination.currentPage, pagination.rowsPerPage, searchQuery]);
 
-  const formattedRows = data?.map((row, index) => {
-    const createdAtRaw = isSearchActive ? row?.date : row?.event?.date;
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, page: 0 }));
+  }, [searchQuery]);
 
-    const eventNumber = isSearchActive
-      ? row?.event_number
+  const formattedRows = data?.map((row, index) => {
+    const createdAtRaw = searchQuery ? row?.event.date : row?.event?.date;
+
+    const eventNumber = searchQuery
+      ? row?.event.event_number
       : row?.event?.event_number ?? "";
 
     return {
       ...row,
-      id: `#${index + 1}`,
+      id: ` ${index + 1}`,
       createdAt: createdAtRaw
         ? format(new Date(createdAtRaw), "dd-MM-yyyy")
         : "Nomaʼlum sana",
-      event_number: eventNumber || "Nomaʼlum",
+      event_number: '#' + eventNumber || "Nomaʼlum",
       products_count: row.productsCount,
       status: (
         <div className="flex flex-wrap gap-1">
@@ -135,7 +138,7 @@ export default function WarehousesDetails() {
           <CircularProgress color="success" />
         </div>
       ) : total === 0 ? (
-        <Box textAlign="center" py={10}>
+        <Box textAlign="center" py={10} sx={{userSelect: 'none'}}>
           <Box
             component="img"
             src={NoData}
